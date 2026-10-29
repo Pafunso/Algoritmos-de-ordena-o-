@@ -20,7 +20,7 @@ O programa trabalha com 12 produtos, cada um com nome, quantidade em estoque e p
 
 No Windows o executável gerado é ordenacao.exe.
 Também dá para rodar sem instalar nada, colando o conteúdo de main.c no OnlineGDB: https://www.onlinegdb.com/online_c_compiler
-Link da execução online: 
+Link da execução online: https://onlinegdb.com/xaa9RTqOJ
 
 ## Exemplo de saída
 
