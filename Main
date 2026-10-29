@@ -1,1 +1,162 @@
+/*
+ * ORDENAÇÃO DE PRODUTOS POR QUANTIDADE EM ESTOQUE
+ * Algoritmos: Bubble Sort e Quick Sort
+ *
+ * Situação-problema: um mercadinho precisa saber quais produtos estão
+ * acabando no estoque. Ordenar por quantidade (do menor para o maior)
+ * mostra no topo da lista o que precisa ser reposto primeiro.
+ *
+ * Compilar: gcc main.c -o ordenacao
+ * Executar: ./ordenacao
+ */
+
+#include <stdio.h>
+#include <string.h>
+
+#define TOTAL 12
+
+/* Registro de um produto do estoque */
+typedef struct {
+    char nome[30];
+    int quantidade;
+    float preco;
+} Produto;
+
+/* Contadores para comparar a eficiência dos dois algoritmos */
+long comparacoes = 0;
+long trocas = 0;
+
+/* Troca dois produtos de posição */
+void trocar(Produto *a, Produto *b) {
+    Produto temp = *a;
+    *a = *b;
+    *b = temp;
+    trocas++;
+}
+
+/*
+ * BUBBLE SORT
+ * Percorre o vetor várias vezes comparando pares de elementos vizinhos.
+ * Se o da esquerda for maior que o da direita, eles trocam de lugar.
+ * A cada passada completa, o maior elemento "flutua" até o final,
+ * por isso o limite da passada diminui (n - 1 - i).
+ * Se uma passada não faz nenhuma troca, o vetor já está ordenado
+ * e o algoritmo para mais cedo (variável "houveTroca").
+ * Complexidade: O(n²) no pior caso.
+ */
+void bubbleSort(Produto v[], int n) {
+    for (int i = 0; i < n - 1; i++) {
+        int houveTroca = 0;
+        for (int j = 0; j < n - 1 - i; j++) {
+            comparacoes++;
+            if (v[j].quantidade > v[j + 1].quantidade) {
+                trocar(&v[j], &v[j + 1]);
+                houveTroca = 1;
+            }
+        }
+        if (!houveTroca) break; /* já ordenado */
+    }
+}
+
+/*
+ * PARTIÇÃO (usada pelo Quick Sort)
+ * Escolhe o último elemento como PIVÔ. Depois percorre o vetor:
+ * todo elemento menor ou igual ao pivô é movido para a parte esquerda.
+ * No final, o pivô é colocado na sua posição definitiva
+ * (menores à esquerda, maiores à direita) e essa posição é retornada.
+ */
+int particionar(Produto v[], int inicio, int fim) {
+    int pivo = v[fim].quantidade;
+    int i = inicio - 1; /* fim da região dos menores */
+
+    for (int j = inicio; j < fim; j++) {
+        comparacoes++;
+        if (v[j].quantidade <= pivo) {
+            i++;
+            trocar(&v[i], &v[j]);
+        }
+    }
+    trocar(&v[i + 1], &v[fim]); /* pivô vai para o lugar certo */
+    return i + 1;
+}
+
+/*
+ * QUICK SORT
+ * Usa a estratégia "dividir para conquistar":
+ * 1) Particiona o vetor em torno de um pivô.
+ * 2) Chama a si mesmo (recursão) para a parte esquerda do pivô.
+ * 3) Chama a si mesmo (recursão) para a parte direita do pivô.
+ * Quando o trecho tem 0 ou 1 elemento, a recursão para (caso base).
+ * Complexidade: O(n log n) em média, O(n²) no pior caso.
+ */
+void quickSort(Produto v[], int inicio, int fim) {
+    if (inicio < fim) {
+        int p = particionar(v, inicio, fim);
+        quickSort(v, inicio, p - 1);
+        quickSort(v, p + 1, fim);
+    }
+}
+
+/* Mostra a tabela de produtos na tela */
+void imprimir(Produto v[], int n) {
+    printf("  %-3s %-22s %-12s %s\n", "#", "Produto", "Quantidade", "Preco (R$)");
+    printf("  ------------------------------------------------------\n");
+    for (int i = 0; i < n; i++) {
+        printf("  %-3d %-22s %-12d %.2f\n", i + 1, v[i].nome, v[i].quantidade, v[i].preco);
+    }
+    printf("\n");
+}
+
+int main(void) {
+    /* Estoque original (12 registros, fora de ordem) */
+    Produto estoque[TOTAL] = {
+        {"Arroz 5kg",        45, 28.90f},
+        {"Feijao 1kg",       12,  8.50f},
+        {"Leite 1L",         80,  5.20f},
+        {"Cafe 500g",         7, 18.75f},
+        {"Acucar 1kg",       33,  4.99f},
+        {"Oleo de soja",     21,  7.80f},
+        {"Macarrao 500g",    60,  4.30f},
+        {"Sabao em po",       5, 15.90f},
+        {"Papel higienico",  90, 12.40f},
+        {"Biscoito",         18,  3.50f},
+        {"Sal 1kg",          27,  2.80f},
+        {"Molho de tomate",  39,  3.99f}
+    };
+
+    /* Cópias do mesmo conjunto de dados, uma para cada algoritmo */
+    Produto copiaBubble[TOTAL];
+    Produto copiaQuick[TOTAL];
+    memcpy(copiaBubble, estoque, sizeof(estoque));
+    memcpy(copiaQuick, estoque, sizeof(estoque));
+
+    printf("=== CONTROLE DE ESTOQUE - ORDENACAO POR QUANTIDADE ===\n\n");
+
+    printf("DADOS ANTES DA ORDENACAO:\n");
+    imprimir(estoque, TOTAL);
+
+    /* ---- Bubble Sort ---- */
+    comparacoes = 0;
+    trocas = 0;
+    bubbleSort(copiaBubble, TOTAL);
+    printf("DEPOIS DO BUBBLE SORT (menor -> maior):\n");
+    imprimir(copiaBubble, TOTAL);
+    printf("  Comparacoes: %ld | Trocas: %ld\n\n", comparacoes, trocas);
+
+    /* ---- Quick Sort ---- */
+    comparacoes = 0;
+    trocas = 0;
+    quickSort(copiaQuick, 0, TOTAL - 1);
+    printf("DEPOIS DO QUICK SORT (menor -> maior):\n");
+    imprimir(copiaQuick, TOTAL);
+    printf("  Comparacoes: %ld | Trocas: %ld\n\n", comparacoes, trocas);
+
+    /* Alerta de reposição: os 3 primeiros da lista ordenada */
+    printf("REPOR COM URGENCIA (3 menores estoques):\n");
+    for (int i = 0; i < 3; i++) {
+        printf("  - %s (%d unidades)\n", copiaQuick[i].nome, copiaQuick[i].quantidade);
+    }
+
+    return 0;
+}
 
